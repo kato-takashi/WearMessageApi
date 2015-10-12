@@ -1,13 +1,14 @@
 package com.lucky_ponies.katotakashi.wearmessageapi;
 
 import android.app.Activity;
-import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -16,17 +17,19 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
-
+        GoogleApiClient.OnConnectionFailedListener,
+        SensorEventListener {
+    //MessageApi関連
     private static final String TAG = "MainActivity";
     private GoogleApiClient googleApiClient;
-    private Button button;
-
     private int counter = 0;
+    //sensor関連
+    private SensorManager mSensorManager;
+    private Sensor mHeartRateSensor;
+    private Sensor mStepCountSensor;
+    private Sensor mStepDetectSensor;
+    private Sensor mAccelerometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,9 +91,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             googleApiClient.disconnect();
         }
         super.onStop();
-
         Log.d(TAG, "onStop()");
-
     }
 
     @Override
@@ -99,6 +100,16 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 
     class SendToDataLayerThread extends Thread {
