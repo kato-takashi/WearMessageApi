@@ -42,6 +42,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private int delay;
 
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +57,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             }
         });
 
-        Log.d(TAG, "onCreate()");
+        Log.d(TAG, "onCreate1");
 
         //message apiのための準備
         googleApiClient = new GoogleApiClient.Builder(this)

@@ -1,7 +1,10 @@
 package com.lucky_ponies.katotakashi.wearmessageapi;
 
 import android.app.Activity;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,11 +21,20 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private GoogleApiClient mGoogleApiClient;
     private TextView acceleroTextView;
     private TextView hbTextView;
+    private UpdateReceiver upReceiver;
+    private IntentFilter intentFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //Serviceからの取得メッセージ
+        upReceiver = new UpdateReceiver();
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("UPDATE_ACTION");
+        registerReceiver(upReceiver, intentFilter);
+        //画面の更新
+        upReceiver.registerHandler(updateHandler);
 
         //センサー値の出力
         acceleroTextView = (TextView) findViewById(R.id.acceleroText);
@@ -40,6 +52,17 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                 .build();
 
     }
+    // サービスから値を受け取ったら動かしたい内容を書く
+    private Handler updateHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            Bundle bundle = msg.getData();
+            String message = bundle.getString("message");
+            Log.d("Activityの名前", "はんどらーだよ" + message);
+            acceleroTextView.setText(message);
+
+        }
+    };
 
     @Override
     protected void onStart() {

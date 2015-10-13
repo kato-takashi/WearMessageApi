@@ -1,5 +1,6 @@
 package com.lucky_ponies.katotakashi.wearmessageapi;
 
+import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -30,7 +31,9 @@ public class ListenerService extends WearableListenerService {
             Log.d(TAG, "Message path received on watch is: " + messageEvent.getPath());
             Log.d(TAG, "Message received on watch is: " + message);
             // Broadcast message to wearable activity for display
-            showToast(message);
+//            showToast(message);
+            //MainActivityへ送信
+            sendBroadCast(message);
 
         }
         else {
@@ -42,6 +45,15 @@ public class ListenerService extends WearableListenerService {
 
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    //MainActivityへ送信
+    protected void sendBroadCast(String message) {
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.putExtra("message", message);
+        broadcastIntent.setAction("UPDATE_ACTION");
+        getBaseContext().sendBroadcast(broadcastIntent);
+
     }
 
 }
