@@ -25,6 +25,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private GoogleApiClient googleApiClient;
     private int counter = 0;
     private String messageKey = "/path";
+    //送信テキスト
+    private final String[] SEND_MESSAGES = {"/Action/NONE", "/Action/PUNCH", "/Action/UPPER", "/Action/HOOK"};
 
     //sensor関連
     private SensorManager mSensorManager;
@@ -35,6 +37,10 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private float x, y, z;
     private final float GAIN = 0.9f;
     private float hbBpm;
+    //加速度判定用
+    private float ox,oy,oz;
+    private int delay;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,8 +150,19 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             y = (y * GAIN + event.values[1] * (1 - GAIN));
             z = (z * GAIN + event.values[2] * (1 - GAIN));
 
-            Log.i("加速度センサー：", String.format("X : %f\nY : %f\nZ : %f\n", x, y, z));
-            Log.i("心拍数：", String.valueOf(event.values[0]));
+            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                //Log.i("加速度センサー：", String.format("X : %f\nY : %f\nZ : %f\n", x, y, z));
+                int motion;
+                motion = detectMotion(x, y, z);
+                Log.i("加速度センサー motion： ", String.valueOf(motion));
+                if(motion>0){
+                    new SendToDataLayerThread(messageKey, SEND_MESSAGES[motion]).start();
+                }
+            }
+
+            if (event.sensor.getType() == Sensor.TYPE_HEART_RATE) {
+                Log.i("心拍数：", String.valueOf(event.values[0]));
+            }
 
 //            if (acceleroTextView != null)
 //                acceleroTextView.setText(String.format("加速度\nX : %f\nY : %f\nZ : %f\n", x, y, z));
@@ -195,5 +212,38 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                 }
             }
         }
+    }
+
+    /**
+     * 超適当な判定
+     *
+     */
+    private int detectMotion(float x, float y, float z) {
+        int diffX = (int)((x - ox)*10);
+        int diffY = (int)((y - oy)*10);
+        int diffZ = (int)((z - oz)*10);
+        int motion = 0;
+
+//        Log.d(TAG, "s:" + diffX + "/" + diffY + "/" + diffZ + " - " + (int)x + "/" + (int)y + "/" + (int)z);
+        if (Math.abs(diffZ) > 20) {
+            Log.d(TAG, "upper!");
+            motion = 2;
+            delay = 4;
+        } else if (Math.abs(diffY) > 20) {
+            Log.d(TAG, "hook!");
+            motion = 3;
+            delay = 4;
+        } else if (diffX > 10) {
+            if (delay == 0) {
+                Log.d(TAG, "punch!");
+                motion = 1;
+            }
+        }
+
+        if (delay > 0) delay--;
+        ox = x;
+        oy = y;
+        oz = z;
+        return motion;
     }
 }
