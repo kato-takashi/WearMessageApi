@@ -3,4 +3,6 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="accelero">加速度センサー</string>
+    <string name="heatbeat">心拍数</string>
 </resources>

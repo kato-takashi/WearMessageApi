@@ -10,6 +10,7 @@ import com.google.android.gms.wearable.WearableListenerService;
 public class ListenerService extends WearableListenerService {
 
     private static final String TAG = "Wear Service";
+    private String messageKey =  "/path";
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
@@ -22,7 +23,7 @@ public class ListenerService extends WearableListenerService {
         super.onMessageReceived(messageEvent);
         Log.v(TAG, "onMessageReceived");
 //        showToast(messageEvent.getPath());
-        if (messageEvent.getPath().equals("/path")) {
+        if (messageEvent.getPath().equals(messageKey)) {
 
             final String message = new String(messageEvent.getData());
 

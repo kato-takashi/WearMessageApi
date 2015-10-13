@@ -24,12 +24,17 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private static final String TAG = "MainActivity";
     private GoogleApiClient googleApiClient;
     private int counter = 0;
+    private String messageKey = "/path";
+
     //sensor関連
     private SensorManager mSensorManager;
     private Sensor mHeartRateSensor;
     private Sensor mStepCountSensor;
     private Sensor mStepDetectSensor;
     private Sensor mAccelerometer;
+    private float x, y, z;
+    private final float GAIN = 0.9f;
+    private float hbBpm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,12 +51,18 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
         Log.d(TAG, "onCreate()");
 
-
+        //message apiのための準備
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+        //センサー取得の準備
+        mSensorManager = ((SensorManager) getSystemService(SENSOR_SERVICE));
+        mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
+        mStepCountSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        mStepDetectSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
     }
 
@@ -59,12 +70,12 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         findViewById(R.id.btn_toast).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //mobileへ送信メッセージ
                 String sendMessage = "Test Data API: " + counter;
                 counter++;
 
                 // UI Thread がブロックする可能性があるので新しいThreadを使う
-                new SendToDataLayerThread("/path", sendMessage).start();
-
+                new SendToDataLayerThread(messageKey, sendMessage).start();
                 Log.d(TAG, "SendToDataLayerThread()");
             }
         });
@@ -76,6 +87,29 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         super.onStart();
         Log.d(TAG, "onStart()");
         googleApiClient.connect();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        /*SENSOR_DELAY_FASTEST 最高速でのセンサ読み出し
+        SENSOR_DELAY_GAME	高速ゲーム向け
+        SENSOR_DELAY_NORMAL 通常モード
+        SENSOR_DELAY_UI 低速。ユーザインターフェイス向け*/
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mStepCountSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mStepDetectSensor, SensorManager.SENSOR_DELAY_NORMAL);
+
+        googleApiClient.connect();
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mSensorManager.unregisterListener(this);
+        googleApiClient.disconnect();
     }
 
     // data layer connection
@@ -104,6 +138,27 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        //        センサー値取得時の処理
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            x = (x * GAIN + event.values[0] * (1 - GAIN));
+            y = (y * GAIN + event.values[1] * (1 - GAIN));
+            z = (z * GAIN + event.values[2] * (1 - GAIN));
+
+            Log.i("加速度センサー：", String.format("X : %f\nY : %f\nZ : %f\n", x, y, z));
+            Log.i("心拍数：", String.valueOf(event.values[0]));
+
+//            if (acceleroTextView != null)
+//                acceleroTextView.setText(String.format("加速度\nX : %f\nY : %f\nZ : %f\n", x, y, z));
+//            Log.i("加速度センサー：", String.format("X : %f\nY : %f\nZ : %f\n", x, y, z));
+//        }
+//
+//        if (event.sensor.getType() == Sensor.TYPE_HEART_RATE) {
+////            Log.i("心拍数：", String.valueOf(event.values[0]));
+//            hbBpm = event.values[0];
+//
+//            if (hbTextView != null)
+//                hbTextView.setText(String.format("心拍数\nbpm : %f", hbBpm));
+        }
 
     }
 
@@ -112,6 +167,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     }
 
+    //送信タスク　スレッド
     class SendToDataLayerThread extends Thread {
         // Path とメッセージを定義
         String path;
