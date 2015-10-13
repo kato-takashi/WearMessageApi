@@ -11,7 +11,8 @@ import com.google.android.gms.wearable.WearableListenerService;
 public class ListenerService extends WearableListenerService {
 
     private static final String TAG = "Wear Service";
-    private String messageKey =  "/path";
+    private String messageKeyAccelarate =  "accelerate";
+    private String messageKeyHeatBeat =  "heatBeat";
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
@@ -24,17 +25,26 @@ public class ListenerService extends WearableListenerService {
         super.onMessageReceived(messageEvent);
         Log.v(TAG, "onMessageReceived");
 //        showToast(messageEvent.getPath());
-        if (messageEvent.getPath().equals(messageKey)) {
+        final String message = new String(messageEvent.getData());
 
-            final String message = new String(messageEvent.getData());
-
+        if (messageEvent.getPath().equals(messageKeyAccelarate)) {
             Log.d(TAG, "Message path received on watch is: " + messageEvent.getPath());
             Log.d(TAG, "Message received on watch is: " + message);
             // Broadcast message to wearable activity for display
 //            showToast(message);
             //MainActivityへ送信
-            sendBroadCast(message);
+            sendBroadCast(messageEvent.getPath(), message);
 
+        }else if (messageEvent.getPath().equals(messageKeyHeatBeat)) {
+            Log.d(TAG, "Message path received on watch is: " + messageEvent.getPath());
+            Log.d(TAG, "Message received on watch is: " + message);
+            // Broadcast message to wearable activity for display
+//            showToast(message);
+            //MainActivityへ送信
+            sendBroadCast(messageEvent.getPath(), message);
+
+        }else if (messageEvent.getPath().equals("/path")) {
+            showToast(message);
         }
         else {
             super.onMessageReceived(messageEvent);
@@ -48,12 +58,13 @@ public class ListenerService extends WearableListenerService {
     }
 
     //MainActivityへ送信
-    protected void sendBroadCast(String message) {
+    protected void sendBroadCast(String messageTag, String message) {
         Intent broadcastIntent = new Intent();
-        broadcastIntent.putExtra("message", message);
+        Log.d("sendBroadCast tag", messageTag);
+        Log.d("sendBroadCast intent", message);
+        broadcastIntent.putExtra(messageTag, message);
         broadcastIntent.setAction("UPDATE_ACTION");
         getBaseContext().sendBroadcast(broadcastIntent);
-
     }
 
 }

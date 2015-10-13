@@ -13,18 +13,24 @@ import android.os.Message;
 
 public class UpdateReceiver extends BroadcastReceiver {
     public static Handler handler;
+    private String messageTag;
+
+    UpdateReceiver(String neWmessageTag){
+        messageTag = neWmessageTag;
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
 
         Bundle bundle = intent.getExtras();
-        String message = bundle.getString("message");
+        String message = bundle.getString(messageTag);
+
 
         if (handler != null) {
             Message msg = new Message();
 
             Bundle data = new Bundle();
-            data.putString("message", message);
+            data.putString(messageTag, message);
             msg.setData(data);
             handler.sendMessage(msg);
         }

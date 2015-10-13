@@ -24,7 +24,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private static final String TAG = "MainActivity";
     private GoogleApiClient googleApiClient;
     private int counter = 0;
-    private String messageKey = "/path";
+    private String messageKey = "";
     //送信テキスト
     private final String[] SEND_MESSAGES = {"/Action/NONE", "/Action/PUNCH", "/Action/UPPER", "/Action/HOOK"};
 
@@ -79,9 +79,9 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             @Override
             public void onClick(View view) {
                 //mobileへ送信メッセージ
-                String sendMessage = "Test Data API: " + counter;
+                String sendMessage = "カキーン: " + counter;
                 counter++;
-
+                messageKey = "/path";
                 // UI Thread がブロックする可能性があるので新しいThreadを使う
                 new SendToDataLayerThread(messageKey, sendMessage).start();
                 Log.d(TAG, "SendToDataLayerThread()");
@@ -157,14 +157,25 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                 int motion;
                 motion = detectMotion(x, y, z);
                 Log.i("加速度センサー motion： ", String.valueOf(motion));
-                if(motion>0){
+                if (motion > 0) {
+                    messageKey = "accelerate";
                     new SendToDataLayerThread(messageKey, SEND_MESSAGES[motion]).start();
                 }
             }
 
-            if (event.sensor.getType() == Sensor.TYPE_HEART_RATE) {
-                Log.i("心拍数：", String.valueOf(event.values[0]));
-            }
+        }
+
+        if (event.sensor.getType() == Sensor.TYPE_HEART_RATE) {
+            Log.i("心拍数：", "get");
+            Log.i("心拍数：", String.valueOf(event.values[0]));
+            String heatBeat = String.valueOf(event.values[0]);
+            messageKey = "heatBeat";
+//                Log.i("心拍数：", heatBeat);
+//            if(event.values[0] > 0){
+//                new SendToDataLayerThread(messageKey, heatBeat).start();
+//            }
+            new SendToDataLayerThread(messageKey, heatBeat).start();
+        }
 
 //            if (acceleroTextView != null)
 //                acceleroTextView.setText(String.format("加速度\nX : %f\nY : %f\nZ : %f\n", x, y, z));
@@ -177,7 +188,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 //
 //            if (hbTextView != null)
 //                hbTextView.setText(String.format("心拍数\nbpm : %f", hbBpm));
-        }
+
 
     }
 
