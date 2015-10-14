@@ -13,15 +13,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/accelero"
+        android:textSize="20sp"
          />
 
     <TextView
         android:layout_below="@+id/acceleroText"
-        android:layout_marginLeft="90dp"
         android:id="@+id/hbText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/heatbeat"
+        android:textSize="20sp"
          />
 
 </RelativeLayout>
