@@ -3,7 +3,6 @@
     package="com.lucky_ponies.katotakashi.wearmessageapi" >
 
     <uses-feature android:name="android.hardware.type.watch" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.BODY_SENSORS" />
 
     <application
