@@ -2,12 +2,14 @@ package com.lucky_ponies.katotakashi.wearmessageapi;
 
 import android.app.Activity;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -27,12 +29,14 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private String messageTagAc = "accelerate";
     private String messageTagHb = "heatBeat";
     private IntentFilter intentFilterHb;
+    private RelativeLayout container;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        container = (RelativeLayout)findViewById(R.id.container);
 
         //加速度
         //Serviceからの取得メッセージ
@@ -81,7 +85,23 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             }else if(bundle.getString("heatBeat") != null){
                 String message = bundle.getString("heatBeat");
                 Log.d("Activityの名前", "はんどらーだよhb" + message);
-                hbTextView.setText("BPM: " + message + "BPM");
+                hbTextView.setText("心拍数: " + message + "BPM");
+                //色を変化
+                int hbVal = (int) Double.parseDouble(message);
+
+                int maxHbNum = 110;
+                int gradeNum = 255/maxHbNum;//グラデーションの係数を算出
+
+                if(hbVal > 0){
+                    Log.d("グラデーション", String.valueOf(hbVal*gradeNum));
+                    //赤系のグラデーション
+                    container.setBackgroundColor(Color.rgb(255, 60, hbVal*gradeNum));
+                }else{
+                    container.setBackgroundColor(Color.rgb(255, 255, 255));
+                    acceleroTextView.setTextColor(Color.rgb(0, 0, 0));
+                }
+
+
             }else if(bundle.getString("/path") != null){
                 String message = bundle.getString("/path");
                 Log.d("Activityの名前", "はんどらーだよpath" + message);

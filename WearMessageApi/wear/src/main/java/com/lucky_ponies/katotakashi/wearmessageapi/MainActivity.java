@@ -1,6 +1,7 @@
 package com.lucky_ponies.katotakashi.wearmessageapi;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -41,6 +42,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private float ox,oy,oz;
     private int delay;
 
+    private WatchViewStub stub;
+
 
 
 
@@ -48,12 +51,13 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
+        stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
                 setupWidgets();
                 Log.d("click", "クリックしたよ");
+                sensorRegisterListener();
             }
         });
 
@@ -100,15 +104,9 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     @Override
     protected void onResume() {
         super.onResume();
-        /*SENSOR_DELAY_FASTEST 最高速でのセンサ読み出し
-        SENSOR_DELAY_GAME	高速ゲーム向け
-        SENSOR_DELAY_NORMAL 通常モード
-        SENSOR_DELAY_UI 低速。ユーザインターフェイス向け*/
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, mStepCountSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, mStepDetectSensor, SensorManager.SENSOR_DELAY_NORMAL);
-
+        Log.i("onResume", "wakeUp");
+        //センサーを準備
+        sensorRegisterListener();
         googleApiClient.connect();
 
     }
@@ -175,6 +173,21 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 //                new SendToDataLayerThread(messageKey, heatBeat).start();
 //            }
             new SendToDataLayerThread(messageKey, heatBeat).start();
+            //もし心拍数が取れていたら
+            int hbVal = (int) event.values[0];
+            int maxHbNum = 110;
+            int gradeNum = 255/maxHbNum;//グラデーションの係数を算出
+            Log.d("係数", String.valueOf(gradeNum));
+            Log.d("グラデーション", String.valueOf(hbVal*gradeNum));
+            if(event.values[0] > 0.0){
+                //赤系のグラデーション
+
+                stub.setBackgroundColor(Color.rgb(255, 60, hbVal*gradeNum));
+            }
+
+            else{
+                stub.setBackgroundColor(Color.BLACK);
+            }
         }
 
 //            if (acceleroTextView != null)
@@ -188,7 +201,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 //
 //            if (hbTextView != null)
 //                hbTextView.setText(String.format("心拍数\nbpm : %f", hbBpm));
-
 
     }
 
@@ -258,5 +270,16 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         oy = y;
         oz = z;
         return motion;
+    }
+
+    private void sensorRegisterListener(){
+        /*SENSOR_DELAY_FASTEST 最高速でのセンサ読み出し
+        SENSOR_DELAY_GAME	高速ゲーム向け
+        SENSOR_DELAY_NORMAL 通常モード
+        SENSOR_DELAY_UI 低速。ユーザインターフェイス向け*/
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mStepCountSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mStepDetectSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 }
